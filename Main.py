@@ -44,6 +44,7 @@ def main():
                 row,col = get_row_col(pos)
                 game.select(row, col)
 
+        game.check_status()
         game.update()
 
     pygame.quit()

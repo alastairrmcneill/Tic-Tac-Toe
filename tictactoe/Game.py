@@ -15,13 +15,14 @@ class Game:
         self.clock = pygame.time.Clock()
         self.computer_player = False
         self.game_count += 1
-
+        self.turn = "x"
         if self.game_count // 2 == 0:
             self.AI = "x"
         else:
             self.AI = "o"
 
         self.ended = False
+        self.status = {}
         self.winner = ""
 
     def start_screen(self):
@@ -46,20 +47,10 @@ class Game:
                         self.ended = True
                         return
                     elif button == 2:
-                        print("Two player")
                         self.computer_player = False
                         return
 
             self.draw_start_scren()
-
-    def button_from_pos(self, pos):
-        if ONE_PLAYER_BUTTON[0] + ONE_PLAYER_BUTTON[2] > pos[0] > ONE_PLAYER_BUTTON[0] and ONE_PLAYER_BUTTON[1] + ONE_PLAYER_BUTTON[3] > pos[1] > ONE_PLAYER_BUTTON[1]:
-            return 1
-
-        if TWO_PLAYER_BUTTON[0] + TWO_PLAYER_BUTTON[2] > pos[0] > TWO_PLAYER_BUTTON[0] and TWO_PLAYER_BUTTON[1] + TWO_PLAYER_BUTTON[3] > pos[1] > TWO_PLAYER_BUTTON[1]:
-            return 2
-
-        return 0
 
     def draw_start_scren(self):
         self.win.fill(WHITE)
@@ -82,9 +73,16 @@ class Game:
     def end_screen(self):
         delay = 10
         run = True
+        while delay > 0:
+            delay -= 1
+            self.clock.tick(20)
+            self.update()
 
+        delay = 10
         while run:
             delay -= 1
+            self.clock.tick(30)
+            self.draw_end_scren()
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -92,7 +90,7 @@ class Game:
                     pygame.quit()
                     quit()
 
-                if event.type == pygame.MOUSEBUTTONUP:
+                if event.type == pygame.MOUSEBUTTONUP and delay < 0:
                     pos = pygame.mouse.get_pos()
                     button = self.button_from_pos(pos)
                     if button == 1:
@@ -103,13 +101,17 @@ class Game:
                         pygame.quit()
                         quit()
 
-            self.draw_end_scren()
+
 
     def draw_end_scren(self):
         self.win.fill(WHITE)
-        welcome_message = largeFont.render("Winner is: " + self.winner, False, BLACK)
-        rect = welcome_message.get_rect(center=(WIN_WIDTH/2, WIN_HEIGHT/2 - 50))
-        self.win.blit(welcome_message, rect)
+        if self.status["State"] == "Won":
+            end_message = largeFont.render("Winner is: " + self.status["Winner"].upper() + "!", False, BLACK)
+        elif self.status["State"] == "Draw":
+            end_message = largeFont.render("The game was a draw.", False, BLACK)
+
+        rect = end_message.get_rect(center=(WIN_WIDTH/2, WIN_HEIGHT/2 - 50))
+        self.win.blit(end_message, rect)
 
         pygame.draw.rect(self.win, BLACK, ONE_PLAYER_BUTTON)
         onePlayer = mediumFont.render("Reset", False, WHITE)
@@ -123,10 +125,35 @@ class Game:
 
         pygame.display.update()
 
+    def button_from_pos(self, pos):
+        if ONE_PLAYER_BUTTON[0] + ONE_PLAYER_BUTTON[2] > pos[0] > ONE_PLAYER_BUTTON[0] and ONE_PLAYER_BUTTON[1] + ONE_PLAYER_BUTTON[3] > pos[1] > ONE_PLAYER_BUTTON[1]:
+            return 1
+
+        if TWO_PLAYER_BUTTON[0] + TWO_PLAYER_BUTTON[2] > pos[0] > TWO_PLAYER_BUTTON[0] and TWO_PLAYER_BUTTON[1] + TWO_PLAYER_BUTTON[3] > pos[1] > TWO_PLAYER_BUTTON[1]:
+            return 2
+
+        return 0
+
     def select(self, row, col):
-        pass
+        if self.board.board[row][col] == 0:
+            self.play(row, col)
+
+    def play(self, row, col):
+        self.board.add_piece(row, col, self.turn)
+        self.change_turn()
+
+    def check_status(self):
+        self.status = self.board.check_status()
+        if self.status["State"] != "Continue":
+            self.ended = True
+
+    def change_turn(self):
+        if self.turn == "x":
+            self.turn = "o"
+        else:
+            self.turn = "x"
 
     def update(self):
         self.win.fill(WHITE)
-
+        self.board.draw()
         pygame.display.update()
