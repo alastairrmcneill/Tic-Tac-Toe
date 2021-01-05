@@ -1,3 +1,7 @@
+"""
+Constants for the game
+"""
+
 import pygame
 pygame.font.init()
 

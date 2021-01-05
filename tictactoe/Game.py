@@ -3,29 +3,41 @@ from tictactoe.Board import  Board
 from tictactoe.Constants import WIN_HEIGHT, WIN_WIDTH, WHITE, BLACK, GREEN, mediumFont, largeFont, ONE_PLAYER_BUTTON, TWO_PLAYER_BUTTON
 
 class Game:
-    game_count = 0
+
 
     def __init__(self, win):
+        """
+        Game class that handles all the menus, player moves etc
+
+        Arguments:
+            win {pygame surface} -- Main surface to which everything gets drawn
+        """
         self.win = win
+        self.game_count = 0
         self.reset()
-        self.computer_player = None
+        self.computer_player = False
 
     def reset(self):
+        """
+        Resets the game class between games
+        """
         self.board = Board(self.win)
         self.clock = pygame.time.Clock()
-        self.computer_player = False
         self.game_count += 1
-        self.turn = "x"
-        if self.game_count // 2 == 0:
-            self.AI = "x"
+        if self.game_count % 2 == 0:
+            self.turn = "o"
         else:
-            self.AI = "o"
-
+            self.turn = "x"
+        self.ai = "o"
+        self.player = "x"
         self.ended = False
         self.status = {}
         self.winner = ""
 
     def start_screen(self):
+        """
+        Starting menu for the game
+        """
         delay = 10
         run = True
 
@@ -44,7 +56,6 @@ class Game:
                     if button == 1:
                         print("One player")
                         self.computer_player = True
-                        self.ended = True
                         return
                     elif button == 2:
                         self.computer_player = False
@@ -53,6 +64,9 @@ class Game:
             self.draw_start_scren()
 
     def draw_start_scren(self):
+        """
+        Drawing the starting menu
+        """
         self.win.fill(WHITE)
         welcome_message = largeFont.render("Welcome to Tic Tac Toe!", False, BLACK)
         rect = welcome_message.get_rect(center=(WIN_WIDTH/2, WIN_HEIGHT/2 - 50))
@@ -71,7 +85,10 @@ class Game:
         pygame.display.update()
 
     def end_screen(self):
-        delay = 10
+        """
+        End screen after the game has finished
+        """
+        delay = 20
         run = True
         while delay > 0:
             delay -= 1
@@ -101,9 +118,10 @@ class Game:
                         pygame.quit()
                         quit()
 
-
-
     def draw_end_scren(self):
+        """
+        Draw the end screen
+        """
         self.win.fill(WHITE)
         if self.status["State"] == "Won":
             end_message = largeFont.render("Winner is: " + self.status["Winner"].upper() + "!", False, BLACK)
@@ -126,6 +144,15 @@ class Game:
         pygame.display.update()
 
     def button_from_pos(self, pos):
+        """
+        Determines which button is pressed depending on where is clicked on the screen. Buttons are always in the same place
+
+        Arguments:
+            pos {tuple (x, y)} -- x and y co-ordinates of the mouse click
+
+        Returns:
+            int -- number of the button clicked
+        """
         if ONE_PLAYER_BUTTON[0] + ONE_PLAYER_BUTTON[2] > pos[0] > ONE_PLAYER_BUTTON[0] and ONE_PLAYER_BUTTON[1] + ONE_PLAYER_BUTTON[3] > pos[1] > ONE_PLAYER_BUTTON[1]:
             return 1
 
@@ -135,25 +162,48 @@ class Game:
         return 0
 
     def select(self, row, col):
+        """
+        Checks if the square selected is empty and plays a move if it is
+
+        Arguments:
+            row {int} -- Row which was clicked
+            col {int} -- Column which was clicked
+        """
         if self.board.board[row][col] == 0:
             self.play(row, col)
 
     def play(self, row, col):
+        """
+        Plays a piece onto the board
+
+        Arguments:
+            row {int} -- Row to play the piece
+            col {int} -- Column to play the piece
+        """
         self.board.add_piece(row, col, self.turn)
         self.change_turn()
 
     def check_status(self):
+        """
+        Checks the current status and updates if the game has ended
+        """
         self.status = self.board.check_status()
         if self.status["State"] != "Continue":
             self.ended = True
 
     def change_turn(self):
+        """
+        Swaps the current active player
+        """
         if self.turn == "x":
             self.turn = "o"
         else:
             self.turn = "x"
 
     def update(self):
+        """
+        Draws the game to the screen
+        """
         self.win.fill(WHITE)
         self.board.draw()
         pygame.display.update()
